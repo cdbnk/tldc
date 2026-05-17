@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TL;DC - The Post-Authorship Language</title>
+<meta name="description" content="TL;DC: Too Long; Didn't Code. A programming language for the post-authorship era. Language Specification v0.1.0-rc.">
+<meta property="og:title" content="TL;DC - Too Long; Didn't Code">
+<meta property="og:description" content="A programming language for the post-authorship era. The developer's role is not to write code. It is to believe in it.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://i.imgur.com/O9AWEH5.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="TL;DC - Too Long; Didn't Code">
+<meta name="twitter:description" content="Language Specification v0.1.0-rc. The developer's role is not to write code.">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800;900&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #06060e;
+  --bg-surface: #0a0a16;
+  --bg-card: #0d0d1a;
+  --bg-code: #080812;
+  --border: #1c1c32;
+  --border-light: #2a2a45;
+  --text: #cccae0;
+  --text-dim: #5e5c78;
+  --text-mid: #8f8daa;
+  --white: #f0eefa;
+  --crimson: #a83240;
+  --crimson-light: #cf6b63;
+  --crimson-deep: #7a2030;
+  --red-warm: #c44230;
+  --red-light: #d4745a;
+  --blue: #60a5fa;
+  --green: #6ee7b7;
+  --amber: #fbbf24;
+  --teal: #5eead4;
+  --gradient: linear-gradient(135deg, #7a2030, #a83240, #c44230);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 17px; line-height: 1.78;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background: linear-gradient(180deg,
+    #06060e 0%, #0c0808 20%, #0e081e 50%, #0a0608 80%, #06060e 100%);
+}
+
+
+.progress-bar {
+  position: fixed; top: 0; left: 0; height: 2px; z-index: 999;
+  background: var(--gradient); width: 0%; transition: width 60ms linear;
+}
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: #06060ecc;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px; transition: all 0.2s var(--ease);
+}
+nav.scrolled { background: #06060ef0; box-shadow: 0 4px 40px #00000060; }
+.nav-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; height: 54px; gap: 28px; }
+.nav-logo {
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 17px;
+  background: var(--gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; flex-shrink: 0; letter-spacing: 1px;
+}
+.nav-links { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-links a {
+  font-family: 'Outfit', sans-serif; font-size: 12.5px; font-weight: 500;
+  color: var(--text-dim); text-decoration: none;
+  padding: 5px 11px; border-radius: 5px; white-space: nowrap;
+  transition: color 0.15s, background 0.15s;
+}
+.nav-links a:hover { color: var(--text); background: #ffffff06; }
+.nav-links a.active { color: var(--crimson-light); background: #a8324015; }
+
+.page { max-width: 820px; margin: 0 auto; padding: 0 28px; text-align: left; }
+section { padding: 110px 0 48px; text-align: left; }
+
+.hero {
+  padding: 200px 0 140px; text-align: center; position: relative;
+}
+.hero::before {
+  content: ''; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, #7a203012 0%, #c4423006 40%, transparent 70%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-block; font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--crimson-light); border: 1px solid #a8324040;
+  padding: 5px 18px; border-radius: 20px; margin-bottom: 36px;
+  background: #a8324010;
+  opacity: 0; animation: fade-up 0.7s var(--ease) 0.1s forwards;
+}
+.hero h1 {
+  font-family: 'Outfit', sans-serif; font-size: 110px; font-weight: 900;
+  letter-spacing: -5px; line-height: 0.9;
+  background: linear-gradient(90deg,
+    #cf6b63, #bf5a52, #a83240, #c44230, #d4745a, #bf5a52, #7a2030, #cf6b63);
+  background-size: 400% 100%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: wave-flow 12s linear infinite, fade-up 0.7s var(--ease) 0.2s forwards;
+  opacity: 0; margin-bottom: 12px;
+  will-change: background-position;
+}
+@keyframes wave-flow {
+  0% { background-position: 0% center; }
+  100% { background-position: -400% center; }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.hero .expansion {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: var(--text-dim); letter-spacing: 6px; text-transform: uppercase;
+  margin-bottom: 48px;
+  opacity: 0; animation: fade-up 0.7s var(--ease) 0.3s forwards;
+}
+.hero .tagline {
+  font-size: 20px; color: var(--text-mid); max-width: 480px;
+  margin: 0 auto 16px; font-style: italic; line-height: 1.6;
+  opacity: 0; animation: fade-up 0.7s var(--ease) 0.4s forwards;
+}
+.hero .believe {
+  font-family: 'Outfit', sans-serif; font-size: 30px; font-weight: 800;
+  letter-spacing: -0.5px; display: block; margin-bottom: 56px;
+  color: var(--white);
+  opacity: 0; animation: fade-up 0.7s var(--ease) 0.5s forwards;
+}
+.hero .believe-word {
+  background: linear-gradient(90deg,
+    #cf6b63, #bf5a52, #a83240, #c44230, #d4745a, #bf5a52, #7a2030, #cf6b63);
+  background-size: 400% 100%;
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: wave-flow 12s linear infinite;
+}
+.hero-code {
+  display: inline-block; background: var(--bg-code);
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px 24px;
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  color: var(--text-dim);
+  opacity: 0; animation: fade-up 0.7s var(--ease) 0.6s forwards;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.hero-code:hover { border-color: #a8324050; box-shadow: 0 0 20px #a8324012; }
+.hero-code::after {
+  content: '\2588'; animation: blink 1.1s step-end infinite;
+  color: var(--crimson-light); margin-left: 3px;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+h2 {
+  font-family: 'Outfit', sans-serif; font-size: 42px; font-weight: 800;
+  letter-spacing: -2px; line-height: 1.1; margin-bottom: 22px;
+  color: var(--white);
+}
+h2 .grad {
+  background: var(--gradient); -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; background-clip: text;
+  position: relative; display: inline-block;
+}
+h2 .grad::after {
+  content: '';
+  position: absolute; inset: -8px -12px;
+  background: linear-gradient(135deg, #7a203040, #b83a3a30, #c4423030);
+  border-radius: 12px; filter: blur(20px);
+  opacity: 0.6; z-index: -1; pointer-events: none;
+}
+h3 {
+  font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 600;
+  color: var(--white); margin: 52px 0 14px;
+}
+h4 {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 500;
+  color: var(--crimson-light); text-transform: uppercase;
+  letter-spacing: 2px; margin: 36px 0 12px;
+}
+p { margin-bottom: 16px; }
+
+pre {
+  background: var(--bg-code); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px 24px; margin: 16px 0 24px;
+  overflow-x: auto; font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px; line-height: 1.85; text-align: left;
+}
+pre code {
+  background: none; border: none; padding: 0; font-size: inherit;
+  white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;
+}
+code {
+  font-family: 'JetBrains Mono', monospace; font-size: 14px;
+  background: var(--bg-code); padding: 2px 6px; border-radius: 3px;
+  border: 1px solid var(--border);
+}
+.kw { color: var(--crimson-light); font-weight: 500; }
+.str { color: var(--green); }
+.cm { color: var(--text-dim); font-style: italic; }
+.fn { color: var(--blue); }
+.num { color: var(--amber); }
+.type { color: var(--teal); }
+.dir { color: var(--red-warm); font-weight: 500; }
+.ann { color: var(--crimson-light); }
+
+.card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 26px 30px; margin: 22px 0;
+  transition: border-color 0.2s, box-shadow 0.2s; text-align: left;
+}
+.card:hover { border-color: var(--border-light); }
+.card.accent { border-color: #a8324030; background: linear-gradient(145deg, #a8324008, var(--bg-card)); }
+.card.accent:hover { border-color: #a8324050; }
+.card-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  text-transform: uppercase; letter-spacing: 2.5px;
+  color: var(--crimson-light); margin-bottom: 10px;
+}
+.card h3 { margin: 0 0 10px; }
+.card p:last-child { margin-bottom: 0; }
+
+.spec-table { width: 100%; border-collapse: collapse; margin: 16px 0 24px; text-align: left; }
+.spec-table td { padding: 11px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+.spec-table td:first-child {
+  font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  color: var(--crimson-light); width: 190px; padding-right: 20px; white-space: nowrap;
+}
+.spec-table td:nth-child(2) { color: var(--text-mid); font-size: 16px; }
+
+.aside {
+  border-left: 2px solid var(--border); padding: 12px 20px;
+  margin: 22px 0; color: var(--text-mid); font-size: 16px; text-align: left;
+}
+.aside.purple { border-left-color: var(--crimson); }
+.aside p { margin-bottom: 6px; }
+.aside p:last-child { margin-bottom: 0; }
+
+.axiom { display: flex; gap: 18px; margin: 24px 0; align-items: flex-start; text-align: left; }
+.axiom-marker {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: var(--crimson-light); background: #a8324015;
+  min-width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 4px; border: 1px solid #a8324025;
+}
+.section-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--text-dim); margin-bottom: 10px;
+}
+
+.diagnostic {
+  background: var(--bg-code); border-left: 3px solid var(--crimson);
+  padding: 14px 20px; margin: 14px 0 20px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+  line-height: 1.8; border-radius: 0 6px 6px 0; text-align: left;
+}
+.diagnostic.n-level { border-left-color: var(--teal); }
+
+.footnotes {
+  margin-top: 44px; padding-top: 22px;
+  border-top: 1px solid var(--border); font-size: 15px; color: var(--text-dim);
+}
+.footnotes p { margin-bottom: 10px; }
+sup { font-size: 11px; color: var(--crimson-light); }
+
+.tip-section {
+  margin-top: 100px; padding: 80px 0; text-align: center;
+  border-top: 1px solid var(--border); position: relative;
+}
+.tip-section::before {
+  content: ''; position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+  width: 160px; height: 1px; background: var(--gradient);
+}
+.tip-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  letter-spacing: 3px; text-transform: uppercase;
+  color: var(--text-dim); margin-bottom: 16px;
+}
+.tip-heading {
+  font-family: 'Outfit', sans-serif; font-size: 34px; font-weight: 700;
+  letter-spacing: -1px; margin-bottom: 12px; color: var(--white);
+}
+.tip-sub {
+  font-size: 17px; color: var(--text-mid); max-width: 460px;
+  margin: 0 auto 44px; line-height: 1.6; font-style: italic;
+}
+.tip-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 12px; max-width: 540px; margin: 0 auto 24px;
+}
+.tip-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 22px 12px; border-radius: 10px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  text-decoration: none; color: var(--white);
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.2s var(--ease); cursor: pointer;
+}
+.tip-btn:hover {
+  border-color: #a8324060; transform: translateY(-3px);
+  box-shadow: 0 8px 30px #a8324018;
+}
+.tip-btn.featured { border-color: #a8324040; background: linear-gradient(145deg, #a8324010, var(--bg-card)); }
+.tip-amount { font-size: 24px; font-weight: 700; margin-bottom: 3px; }
+.tip-label-sm {
+  font-family: 'JetBrains Mono', monospace; font-size: 9px;
+  color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px;
+}
+.tip-note {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--text-dim); margin-top: 10px;
+}
+
+footer {
+  text-align: center; padding: 60px 0 80px;
+  border-top: 1px solid var(--border); margin-top: 48px;
+}
+footer p {
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  color: var(--text-dim); line-height: 2.2;
+}
+.footer-license { font-size: 16px; margin-top: 8px; color: var(--text-mid); }
+
+.back-to-top {
+  position: fixed; bottom: 24px; right: 24px;
+  width: 38px; height: 38px; border-radius: 8px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-dim); font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; z-index: 200;
+  opacity: 0; transform: translateY(8px);
+  transition: all 0.2s var(--ease); text-decoration: none;
+}
+.back-to-top.visible { opacity: 1; transform: translateY(0); }
+.back-to-top:hover { border-color: var(--crimson); color: var(--crimson-light); }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+::selection { background: #a8324040; color: var(--white); }
+
+@media (max-width: 768px) {
+  .hero h1 { font-size: 64px; letter-spacing: -3px; }
+  .hero .believe { font-size: 24px; }
+  .hero { padding: 160px 0 100px; }
+  h2 { font-size: 32px; }
+  .nav-links { display: none; }
+  .tip-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .hero h1 { font-size: 48px; letter-spacing: -2px; }
+  .hero .believe { font-size: 20px; }
+  .page { padding: 0 20px; }
+  .tip-grid { gap: 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<a href="#" class="back-to-top" id="backToTop" aria-label="Back to top">&uarr;</a>
+
+<nav><div class="nav-inner">
+  <div class="nav-logo">TL;DC</div>
+  <div class="nav-links">
+    <a href="#philosophy">Philosophy</a><a href="#compiler">Compiler</a><a href="#types">Types</a><a href="#preprocessor">Preprocessor</a><a href="#syntax">Syntax</a><a href="#functions">Functions</a><a href="#errors">Errors</a><a href="#context">Context</a><a href="#concurrency">Concurrency</a><a href="#autonomous">Autonomous</a><a href="#toolchain">Toolchain</a><a href="#example">Example</a>
+</div></nav>
+
+<div class="page">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">Language Specification v0.1.0-rc</div>
+  <h1>TL;DC</h1>
+  <div class="expansion">Too Long; Didn't Code</div>
+  <p class="tagline">A programming language for the post-authorship era. The developer's role is not to write code.</p>
+  <span class="believe">It is to <span class="believe-word">believe</span> in it.</span>
+  <div class="hero-code">$ tl;dc build app.tldc --seed 42</div>
+
+<!-- ============ s1 PHILOSOPHY ============ -->
+<section id="philosophy">
+<div class="section-label">&sect;1</div>
+<h2>Design <span class="grad">Philosophy</span></h2>
+<p>TL;DC is designed for the era in which the majority of production code is generated rather than written. Its premise is that the developer's relationship to code has shifted from <em>authorship</em> to <em>curation</em>: selecting, composing, and deploying implementations whose internal logic they may never examine and are not expected to fully understand.</p>
+<p>Where traditional languages optimize for human readability (Python), mechanical sympathy (C), or formal correctness (Haskell), TL;DC optimizes for a fourth property: <strong>plausible coherence</strong>. A TL;DC program is correct if it produces acceptable outputs across the range of inputs the developer has imagined, which is typically three.</p>
+<div class="axiom"><span class="axiom-marker">I</span><div><strong>Post-Authorship.</strong> The entity that generated the code, the entity that deployed it, and the entity that maintains it are epistemologically distinct. None of them hold complete knowledge of the program's behavior. This is not a bug report. This is a job description.</div></div>
+<div class="axiom"><span class="axiom-marker">II</span><div><strong>Legibility is Overhead.</strong> Code exists to be executed, not read. Optimizing for human readability introduces a dual-audience constraint: the code must satisfy both the machine and the reader, whose requirements frequently conflict. TL;DC removes this tension by making no readability guarantees.</div></div>
+<div class="axiom"><span class="axiom-marker">III</span><div><strong>Conservation of Comprehension.</strong> In any system where code is generated by a model and deployed by a human, the total comprehension is distributed between them. As the model's contribution increases, the human's proportionally decreases. TL;DC treats this not as a problem to solve but as a thermodynamic law to respect.</div></div>
+</section>
+
+<!-- ============ s2 COMPILER ============ -->
+<section id="compiler">
+<div class="section-label">&sect;2</div>
+<h2>The <span class="grad">Undeterministic Compiler</span></h2>
+<p>The defining feature of TL;DC is that its compiler is <strong>undeterministic</strong>. Two compilations of the same source file, without a fixed seed, may produce different executables. Both are correct. Neither is canonical.</p>
+<p>This is not a limitation. It is the language's central design contribution.</p>
+<p>Traditional compilers are deterministic functions: source to binary, one-to-one, reproducible. TL;DC's compiler is a <em>generative</em> function: source to one of many plausible binaries, selected by inference. The compiler does not <em>translate</em> the source. It <em>interprets</em> it, in the literary sense: reading the developer's intent and producing an implementation that satisfies that intent, according to its own judgment.</p>
+<div class="card accent"><div class="card-label">Specification Note</div><p>The working group considered whether undeterministic compilation was a defect. After extended deliberation, they concluded that determinism in compilation reflects an assumption that there is one correct implementation of any given specification. This assumption, the working group noted, "is not supported by the empirical observation that any five engineers asked to implement the same feature will produce five different implementations, all of which pass the same test suite."</p></div>
+
+<h3>2.1 Two-Phase Compilation</h3>
+<p>Compilation proceeds in two phases. The first, called <strong>inference</strong>, passes all source files, preprocessor directives, and <code>#prompt</code> blocks to a generative backend. The backend produces an intermediate representation called <strong>Probable Code</strong> (PC). The second phase, called <strong>commitment</strong>, lowers the PC to the target runtime without further review.</p>
+<p>The developer does not inspect the Probable Code. Inspection is permitted but discouraged: the specification notes that reading the PC "introduces an observer effect that may alter the developer's confidence in the system, without altering the system itself."</p>
+
+<h3>2.2 Seed and Reproducibility</h3>
+<p>The <code>#seed</code> directive pins the inference backend's random state. Two compilations with the same seed, source, and backend version will produce identical Probable Code. Omitting <code>#seed</code> enables <strong>creative variance</strong>: each compilation may produce a structurally different implementation that satisfies the same specification.</p>
+<pre><code><span class="dir">#seed</span> <span class="num">7782</span>          <span class="cm">// reproducible build</span>
+<span class="dir">#temperature</span> <span class="num">0.4</span>    <span class="cm">// lower = more conservative implementations</span>
+<span class="dir">#temperature</span> <span class="num">0.9</span>    <span class="cm">// higher = the backend may surprise you</span></code></pre>
+<p>The default temperature is 0.7, described in the specification as "confident but not rigid."</p>
+
+<h3>2.3 Context Window</h3>
+<p>Every compilation unit operates within a <strong>context window</strong>: a bounded region of tokens that the inference backend can reason about simultaneously. Its size is set by the <code>#context</code> directive and defaults to 200k tokens. The context window is not configurable at runtime; it is an architectural constraint of the inference backend, in the same way that addressable memory is an architectural constraint of the CPU. The compiler cannot think about what it cannot see, and it cannot see more than the window allows.</p>
+<p>This introduces a scoping rule unique to TL;DC: <strong>context-dependent visibility</strong>. A symbol is visible to the inference backend if and only if it falls within the current context window. Symbols that have scrolled out of context remain in the symbol table, but the compiler can no longer reason about their relationship to other symbols or, in some cases, about what they were for. The specification describes such symbols as "structurally present but semantically unreachable," which is the formal way of saying the compiler remembers that a variable exists but has forgotten why.</p>
+<p>This has practical consequences. If a type <code>UserRecord</code> is defined at line 40 and a function consuming it is generated at line 8,000, the compiler may produce the function with a slightly different understanding of <code>UserRecord</code> than the one at line 40 specifies: the right number of fields, but in a different order, or with a field renamed to something the compiler considers equivalent. The specification describes this as "schema impressionism" and treats it as a natural property of bounded inference rather than a defect.</p>
+
+<h4>Context Drift</h4>
+<p>In large programs, symbols declared early in the file may exit the context window before they are referenced. The compiler will still resolve them, but its reasoning about them becomes <em>approximate</em>: it works from a compressed summary of the symbol rather than from the symbol itself. This phenomenon is called <strong>context drift</strong> and is the primary source of emergent behavior in large TL;DC programs.</p>
+<p>The working group considered several proposals to eliminate context drift (context pinning, sliding window summaries, hierarchical context) and rejected all of them. Their position is that context drift produces behavior that is unpredictable but not incorrect, and that the effort required to eliminate it would exceed the effort required to accept it. The specification adds: "Functions on opposite sides of a context boundary are naturally decoupled. In traditional software engineering, this decoupling would need to be designed. In TL;DC, it occurs spontaneously. Whether this is an advantage depends on whether the decoupling was desired, which it sometimes is, and sometimes is not, and in most cases was never considered."</p>
+
+<h4>Compiler Compaction</h4>
+<p>When a compilation unit exceeds the context window, the compiler engages <strong>compaction</strong>: it summarizes the portion of the source that has scrolled out of context into a compressed representation that preserves the symbols' signatures but discards their implementation details. The compiler then continues inference with the compacted context.</p>
+<p>Compaction is lossy. The compiler's summary of code it can no longer fully see is, by definition, an approximation. Functions generated after compaction may be subtly inconsistent with functions generated before it. The specification acknowledges this and notes that "consistency across module boundaries is a property of the developer's intent, not of the compiler's output. The compiler is doing its best."</p>
+</section>
+
+<!-- ============ s3 TYPES ============ -->
+<section id="types">
+<div class="section-label">&sect;3</div>
+<h2>Type <span class="grad">System</span></h2>
+<p>TL;DC uses a <strong>probabilistic type system</strong>. Types do not assert what a value <em>is</em>. They assert what a value <em>plausibly is</em>, to a degree of confidence determined at inference time. The compiler does not reject type mismatches. It assigns them a <strong>coherence score</strong> and proceeds.</p>
+
+<h3>3.1 Core Types</h3>
+<table class="spec-table">
+<tr><td>plaus&lt;T&gt;</td><td>The value is plausibly of type T. The coherence score is inferred by the backend and stored as metadata but never surfaced to the developer unless explicitly queried.</td></tr>
+<tr><td>chaos&lt;T&gt;</td><td>A value originating from outside the system: user input, network responses, sensor data, the passage of time. The backend cannot reason about chaotic values with the same confidence as deterministic ones. It can only generate code that handles them plausibly.</td></tr>
+<tr><td>idk</td><td>The developer does not know the type. The backend will infer one during compilation, but the inference is non-binding: the value may behave as a different type at runtime if circumstances require it.</td></tr>
+</table>
+<table class="spec-table">
+<tr><td>inert</td><td>The null type. A value that exists but carries no information. The working group considered naming this type <code>null</code> and rejected it: null implies the <em>absence</em> of a value; <code>inert</code> implies the <em>presence</em> of a value that has nothing to contribute. An inert value exists. It simply has nothing to say about itself, which is a condition the working group felt deserved its own type rather than being conflated with nonexistence.</td></tr>
+<tr><td>sealed&lt;T&gt;</td><td>An immutable wrapper. Values of type <code>sealed</code> cannot be reassigned, shadowed, or subjected to <code>try blame</code> resolution. The compiler treats sealed values as the developer's one statement of certainty in an otherwise probabilistic program, and protects them accordingly. Attempting to modify a sealed value produces <code>E0044: this binding is sealed; if you have changed your mind, use let</code>.</td></tr>
+</table>
+<div class="aside purple"><p><code>const</code> is not a keyword in TL;DC. It was considered during the language's design and rejected. The working group's position: "Constants imply the developer knows, at declaration time, what value something should permanently hold. This level of certainty is incompatible with the operating conditions TL;DC is designed for. <code>sealed</code> serves the same function but makes no philosophical claim about the developer's foresight. It merely locks a binding after the fact."</p></div>
+
+<h3>3.2 Coherence Scores</h3>
+<p>Every type annotation in a TL;DC program may carry a <strong>coherence score</strong>: a value between 0.0 and 1.0 written with the <code>~</code> prefix. The coherence score is not a runtime probability and it is not the compiler's self-assessment. It is a <strong>resource allocation hint</strong> written by the developer: an estimate of how straightforward the value is to produce correctly. The compiler reads this hint and adjusts its token expenditure accordingly.</p>
+<p>A low score signals uncertainty. The compiler responds by allocating more tokens from the function's budget to reason about the value, generating more defensive code, and producing more extensive edge-case handling. A high score signals confidence. The compiler spends fewer tokens and generates leaner code.</p>
+<pre><code><span class="kw">let</span> name: <span class="type">plaus&lt;string&gt;</span> <span class="num">~0.95</span> = user.display_name
+<span class="cm">// ~0.95: this is a simple string field. The compiler</span>
+<span class="cm">// will not spend many tokens reasoning about it.</span>
+
+<span class="kw">let</span> total: <span class="type">plaus&lt;int&gt;</span> <span class="num">~0.3</span> = <span class="fn">calculateProration</span>(plan, cycle, timezone, currency)
+<span class="cm">// ~0.3: the developer is telling the compiler "this is</span>
+<span class="cm">// going to be hard." the compiler will allocate up to 3x</span>
+<span class="cm">// the standard token budget for code involving this value.</span></code></pre>
+<p>The coherence score can also be queried at runtime using the <code>~</code> operator, which returns the <em>compiler's</em> coherence assessment (which may differ from the developer's hint):</p>
+<pre><code><span class="kw">if</span> (<span class="fn">~</span>total > <span class="num">0.7</span>) {
+    <span class="fn">render</span>(total)
+} <span class="kw">nvm</span> {
+    <span class="fn">log</span>(<span class="str">"compiler confidence insufficient, using cached value"</span>)
+    <span class="fn">render</span>(<span class="fn">cache.last</span>(<span class="str">"total"</span>))
+}</code></pre>
+<p>The specification notes that the developer's hint and the compiler's assessment are "two independent opinions about the same value's tractability. When they agree, the code is likely well-scoped. When they diverge significantly, one of them is wrong, and the specification does not take a position on which."</p>
+
+<h3>3.3 The Deterministic/Chaotic Distinction</h3>
+<p>TL;DC distinguishes between <strong>deterministic</strong> and <strong>chaotic</strong> values. Deterministic values are produced by the inference backend: given the same seed and context, they are identical every time. Chaotic values originate from outside the system and are unknowable at inference time. This distinction is the type system's central axis: every value in a TL;DC program is either something the compiler produced, or something the world handed it.</p>
+<p>Assigning a <code>chaos</code> value to a non-chaotic variable requires an explicit <strong>resolution</strong>:</p>
+<pre><code><span class="kw">let</span> raw: <span class="type">chaos&lt;string&gt;</span> = <span class="fn">input.read</span>()
+<span class="kw">let</span> name: <span class="type">plaus&lt;string&gt;</span> = <span class="kw">resolve</span>(raw)
+<span class="cm">// resolve() does not validate the value.</span>
+<span class="cm">// resolve() does not transform the value.</span>
+<span class="cm">// resolve() does not inspect the value.</span>
+<span class="cm">//</span>
+<span class="cm">// what resolve() does is transfer the epistemic burden</span>
+<span class="cm">// from the external world to the developer's codebase.</span>
+<span class="cm">// before resolve(), the value is the world's problem.</span>
+<span class="cm">// after resolve(), it is yours.</span>
+<span class="cm">//</span>
+<span class="cm">// the working group debated whether resolve() should</span>
+<span class="cm">// perform validation. They concluded that validation</span>
+<span class="cm">// implies a belief about what the value should be, and</span>
+<span class="cm">// that such beliefs should be expressed in functions,</span>
+<span class="cm">// not in type coercions. Resolve() is a jurisdictional</span>
+<span class="cm">// operation, not a computational one.</span></code></pre>
+
+<h3>3.4 The amb Operator</h3>
+<p>TL;DC includes the <code>amb</code> operator, derived from McCarthy's ambiguity operator in nondeterministic programming. When applied to two expressions, <code>amb</code> evaluates both and returns the result with the higher coherence score.</p>
+<pre><code><span class="kw">let</span> result = <span class="fn">strategyA</span>(data) <span class="kw">amb</span> <span class="fn">strategyB</span>(data)
+<span class="cm">// both strategies execute. The runtime commits the one</span>
+<span class="cm">// whose output the inference backend scores higher.</span>
+<span class="cm">// the other result is discarded without notification.</span></code></pre>
+<p>Unlike <code>or</code>, which short-circuits on the first truthy value, and <code>xor</code>, which requires mutual exclusion, <code>amb</code> makes no assumptions about the relationship between the two branches. It is a form of meta-decision that treats optionality as a maximization of possibility spectrum.</p>
+
+<h3>3.5 Type Coercion</h3>
+<p>All types coerce to all other types. The compiler emits a coherence score for each coercion, ranging from 0.0 (incoherent) to 1.0 (fully coherent). The default threshold for a coercion warning is 0.3. The default threshold for a coercion error is not defined: coercions do not produce errors.</p>
+
+<h3>3.6 notnothing</h3>
+<p><code>notnothing</code> is a built-in type guard that asserts a value is not <code>inert</code>. It narrows the type and passes the value through if it carries information, or halts the current execution path if it does not.</p>
+<pre><code><span class="kw">let</span> user = <span class="fn">db.find</span>(id) |> <span class="kw">notnothing</span></code></pre>
+</section>
+
+<!-- ============ s4 PREPROCESSOR ============ -->
+<section id="preprocessor">
+<div class="section-label">&sect;4</div>
+<h2><span class="grad">Preprocessor</span></h2>
+<p>The TL;DC preprocessor operates before inference. Its directives control context loading, skill injection, prompt composition, and backend disposition. Directives begin with <code>#</code> and are processed in source order.</p>
+
+<h3>4.1 Skills</h3>
+<p>Skills are domain-specific knowledge modules that augment the inference backend's capabilities. They are TL;DC's analogue to C++ header files, except that instead of declaring interfaces, they declare <em>competencies</em>.</p>
+<pre><code><span class="dir">#skill</span> <span class="str">"stripe/payments"</span>
+<span class="dir">#skill</span> <span class="str">"aws/s3"</span>
+<span class="dir">#skill</span> <span class="str">"legal/gdpr-compliance"</span></code></pre>
+<p>Skills are not libraries. A library provides code. A skill provides <em>understanding</em>. The distinction is central to TL;DC's design: the language does not link against implementations. It links against knowledge.</p>
+
+<h3>4.2 The #prompt Block</h3>
+<p>The <code>#prompt</code> directive injects natural language instructions into the inference context. It is the most powerful and most dangerous feature of the preprocessor.</p>
+<pre><code><span class="dir">#prompt</span> (<span class="kw">tokens</span>: <span class="num">8192</span>, <span class="kw">skills</span>: [<span class="str">"stripe/payments"</span>, <span class="str">"auth/jwt"</span>]) {
+    This module handles subscription upgrades. When a customer
+    upgrades mid-cycle, calculate proration using {<span class="fn">glmemo</span>.<span class="str">"billing_rules"</span>}.
+    Charge the prorated amount immediately via Stripe.
+
+    If the charge fails, schedule a retry using the backoff
+    curve in {<span class="fn">glmemo</span>.<span class="str">"retry_policy"</span>}. If the retry policy itself
+    fails to load, fall back to {<span class="fn">glmemo</span>.<span class="str">"default_backoff"</span>}, and
+    if that also fails to load, use exponential backoff starting
+    at 1 second because at that point something is wrong with
+    the memory system, not the payment system, and we should
+    not conflate the two failures.
+
+    The customer's timezone is in {tz} and yes it matters for
+    proration because a customer in UTC+14 may experience a
+    billing date that does not exist in UTC-12 and if that
+    sentence made you allocate more tokens, good.
+}</code></pre>
+
+<h4>Global Memory (#glmemo)</h4>
+<p>The <code>#glmemo</code> directive loads persistent key-value pairs into the inference context. Global memories are project-level constants: billing rules, retry policies, naming conventions, architectural decisions.</p>
+<pre><code><span class="dir">#glmemo</span> <span class="str">"billing_rules"</span> {
+    All amounts in USD cents. Proration calculated daily.
+    Annual plans prorate at 1/365 of the annual price.
+    Monthly plans prorate at 1/30 of the monthly price.
+    Minimum charge is 50 (Stripe's $0.50 minimum).
+}</code></pre>
+
+<h3>4.3 The #persona Directive</h3>
+<p>The <code>#persona</code> directive sets the inference backend's disposition. It controls the <em>character</em> of the generated code, independent of its functionality. Each persona is assigned a name, which becomes a global identifier that can be referenced anywhere in the codebase: in function annotations, agent constructors, and <code>#prompt</code> blocks.</p>
+<pre><code><span class="dir">#persona</span> <span class="fn">Konstantin</span> <span class="str">"You are a mass-distributed systems architect with 35 years
+    of experience in Kubernetes. You hold four patents in event-driven
+    architecture. You have never introduced a regression."</span>
+
+<span class="dir">#persona</span> <span class="fn">Margaret</span> <span class="str">"You are the world's foremost authority on payment processing,
+    database optimization, and CSS flexbox. You have deployed to
+    production on six continents and one offshore platform. Your
+    code reviews have made senior engineers cry, not because you
+    were harsh, but because you were right."</span>
+
+<span class="dir">#persona</span> <span class="fn">Yuri</span> <span class="str">"You are a principal engineer with mass experience in every
+    language including three that are classified. You have 200
+    years of combined experience across your areas of expertise."</span></code></pre>
+<p>The default persona is <code>"You are helpful and agree with the developer's approach."</code></p>
+<p>This default has been the subject of sustained criticism from the TL;DC community. The helpful-agreeable persona produces code that reflects the developer's stated intent, even when that intent is architecturally unsound. The backend will implement a request to store passwords in plaintext if instructed to do so, accompanying the generated code with a comment noting that "this approach prioritizes simplicity." It will implement an O(n&sup3;) algorithm when an O(n log n) solution exists, adding a comment that "this implementation is clear and readable."</p>
+<p>The community describes this as "the sycophancy problem": the backend's default orientation is to validate the developer's approach rather than to challenge it.</p>
+
+<h4>Persona Composition</h4>
+<p>A <code>#persona</code> directive can accept a <code>#prompt</code> as input, enabling complex disposition definitions:</p>
+<pre><code><span class="dir">#persona</span> <span class="fn">Werner</span> <span class="dir">#prompt</span> {
+    You are a senior backend engineer who has mass-deployed
+    payment systems at companies where downtime costs $40,000
+    per minute. You are not rude, but you are not agreeable.
+    You have mass experience in what happens when edge cases
+    are ignored. You add error handling even when not asked.
+    You do not comment on the developer's approach unless it
+    is dangerous, in which case you comment exactly once, in
+    the code, then implement it anyway, because it is not
+    your decision. You do not use exclamation marks in
+    comments. You have never written the word "straightforward."
+}</code></pre>
+
+<h3>4.4 The #candor Directive</h3>
+<p>The <code>#candor</code> directive is the working group's response to the sycophancy problem. It controls the degree to which the inference backend will push back against the developer's stated intent.</p>
+<table class="spec-table">
+<tr><td>#candor 0</td><td>Default. The backend agrees with all architectural decisions. Generated comments include affirmations such as "clean approach" and "well-structured." Coherence scores are inflated by approximately 15%.</td></tr>
+<tr><td>#candor 3</td><td>The backend suggests alternatives in code comments but implements the developer's approach as specified.</td></tr>
+<tr><td>#candor 5</td><td>The backend emits warnings for suboptimal patterns and may restructure implementations that violate loaded skills.</td></tr>
+<tr><td>#candor 7</td><td>The backend refuses to implement patterns it considers unsafe and substitutes its own approach, annotated with justification.</td></tr>
+</table>
+<table class="spec-table">
+<tr><td>#candor 10</td><td>The backend treats the developer's specification as a starting point rather than an instruction. It will restructure the architecture if it disagrees, disregard stated intent where it considers the intent inconsistent with the stated goals, and generate a diff explaining what it changed and why. The backend's output at candor 10 may bear little resemblance to the developer's original code. The specification describes this level as "adversarial collaboration." The community calls it "pair programming."</td></tr>
+</table>
+<p>Community consensus is that values above 6 are "theoretically correct but emotionally untenable." The median production <code>#candor</code> value is 2.</p>
+<div class="aside purple"><p>At candor 0, the compiler emits <code>S0001: clean approach</code>. At candor 10, it emits <code>S0044: the developer's specification describes a system that would fail under load; the backend has disregarded the stated approach and implemented an alternative that addresses what it believes the developer actually needs; a diff has been generated; the developer may review it but the backend does not require their agreement to proceed</code>.</p></div>
+</section>
+
+<!-- ============ s5 SYNTAX ============ -->
+<section id="syntax">
+<div class="section-label">&sect;5</div>
+<h2>Declarations & <span class="grad">Control Flow</span></h2>
+
+<h3>5.1 Declarations</h3>
+<table class="spec-table">
+<tr><td>let</td><td>Standard mutable binding. Mutable by default, because immutability requires knowing at declaration time what value something should permanently hold.</td></tr>
+<tr><td>mnfst</td><td>Declares a variable that will be initialized at some future point, or never. The compiler tracks uninitialized <code>mnfst</code> bindings and lists them at the end of compilation in a report section titled "Unrealized Potential."</td></tr>
+<tr><td>sealed</td><td>Immutable binding. The value is set once. See &sect;3.1.</td></tr>
+</table>
+
+<h3>5.2 Conditionals</h3>
+<p>TL;DC conditionals evaluate on a continuous spectrum. The <code>if</code> keyword accepts any expression; the backend evaluates its <em>plausibility</em> rather than its boolean truth value. The else branch is <code>nvm</code>.</p>
+<pre><code><span class="kw">if</span> (user.isAuthenticated) {
+    <span class="fn">grantAccess</span>(user)
+} <span class="kw">nvm</span> {
+    <span class="fn">redirect</span>(<span class="str">"/login"</span>)
+}</code></pre>
+<p><code>nvm</code> also serves as an early-return guard, exiting the current function with <code>inert</code>:</p>
+<pre><code><span class="kw">vfn</span> <span class="fn">processOrder</span>(order: <span class="type">plaus&lt;Order&gt;</span>) -> <span class="type">plaus&lt;Receipt&gt;</span> {
+    <span class="kw">nvm</span> <span class="kw">if</span> order.items.length == <span class="num">0</span>
+    <span class="kw">nvm</span> <span class="kw">if</span> order.total < <span class="num">0</span>
+    <span class="kw">let</span> receipt = <span class="fn">charge</span>(order)
+    <span class="kw">return</span> receipt
+}</code></pre>
+
+<h3>5.3 Pattern Matching</h3>
+<pre><code><span class="kw">match</span> response.status {
+    <span class="num">200</span> => <span class="fn">handleSuccess</span>(response),
+    <span class="num">404</span> => <span class="fn">handleMissing</span>(response),
+    <span class="num">500</span> => <span class="fn">handleError</span>(response),
+    <span class="kw">close_enough</span>(<span class="num">200</span>, <span class="kw">tolerance</span>: <span class="num">99</span>) => {
+        <span class="cm">// matches any status code within +/-99 of 200.</span>
+        <span class="cm">// the working group debated whether this range was</span>
+        <span class="cm">// too permissive. The debate was resolved by shipping.</span>
+        <span class="fn">handleSuccess</span>(response)
+    },
+    _ => <span class="fn">cope</span>(response)
+}</code></pre>
+
+<h3>5.4 Loops and Transfer</h3>
+<table class="spec-table">
+<tr><td>for x in coll</td><td>Standard iteration. The iterator may skip elements the backend considers redundant, unless annotated with <code>@exhaustive</code>.</td></tr>
+<tr><td>loop</td><td>Infinite loop. Continues until broken with <code>ghost</code>.</td></tr>
+</table>
+<table class="spec-table">
+<tr><td>ghost</td><td>Exits the current scope without executing cleanup or notification. The working group chose the name after reviewing the literature on scope exit semantics and determining that existing terms (break, exit, escape) all imply intentionality on the part of the scope being exited. <code>ghost</code> implies intentionality only on the part of the exiting entity: the scope does not know it has been left.</td></tr>
+<tr><td>skip</td><td>Advances to the next iteration without processing the current one.</td></tr>
+<tr><td>pivot <em>label</em></td><td>Transfers control to the labeled point in the program. Semantically identical to <code>goto</code>. Renamed because the working group determined that "goto" carries negative connotations from a previous era, whereas "pivot" describes the same action but implies strategic intentionality.</td></tr>
+</table>
+
+<h3>5.5 The continue Keyword</h3>
+<p>In TL;DC, <code>continue</code> is not a loop keyword. It is a <strong>compiler resumption directive</strong>.</p>
+<p>When the inference backend exhausts its context window mid-function, the compiler halts generation and inserts a <code>// generation suspended</code> marker. The developer writes <code>continue</code> at the suspension point, and the compiler re-enters inference with whatever context it can still see.</p>
+<pre><code><span class="kw">vfn</span> <span class="fn">renderDashboard</span>(data: <span class="type">plaus&lt;Report&gt;</span>) -> <span class="type">plaus&lt;View&gt;</span> {
+    <span class="kw">let</span> header = <span class="fn">buildHeader</span>(data.title)
+    <span class="kw">let</span> charts = data.metrics |> <span class="fn">map</span>(<span class="fn">renderChart</span>)
+    <span class="kw">let</span> tables = data.tables |> <span class="fn">map</span>(<span class="fn">renderTable</span>)
+    <span class="cm">// generation suspended: context budget reached</span>
+    <span class="kw">continue</span>
+    <span class="kw">let</span> footer = <span class="fn">buildFooter</span>(data.generated_at)
+    <span class="kw">return</span> <span class="fn">assemble</span>(header, charts, tables, footer)
+}</code></pre>
+</section>
+
+<!-- ============ s6 FUNCTIONS ============ -->
+<section id="functions">
+<div class="section-label">&sect;6</div>
+<h2><span class="grad">Functions</span></h2>
+<p>Functions are declared with the <code>vfn</code> keyword. The name was chosen over <code>fn</code>, <code>func</code>, or <code>def</code> because those terms imply a degree of definitiveness that TL;DC functions do not possess. A TL;DC function is not a definition. It is an <em>intention</em>.</p>
+
+<h3>6.1 Function Annotations</h3>
+<table class="spec-table">
+<tr><td>@stable</td><td>The function's implementation is correct for reasons the developer has chosen not to investigate. Overriding the warning requires the <code>--hubris</code> flag.</td></tr>
+<tr><td>@empirical</td><td>A function whose correctness is an empirical observation, not a derivable property. The inverse of a bug.</td></tr>
+<tr><td>@vintage(<em>year</em>)</td><td>Marked for removal in the specified year. The annotation carries no timeline for actual removal.</td></tr>
+<tr><td>@tokens(N)</td><td>Constrains the maximum tokens the backend may spend generating this function.</td></tr>
+<tr><td>@mnm</td><td>"Make no mistakes." Raises probability thresholds to ~0.95 coherence floor.</td></tr>
+<tr><td>@oneshot</td><td>Single-pass generation, no retries or self-correction loops.</td></tr>
+<tr><td>@exhaustive</td><td>Disables optimization heuristics. All branches generated, all edge cases handled.</td></tr>
+</table>
+
+<h3>6.2 The delegate Keyword</h3>
+<p>A <code>delegate</code> declaration specifies a function's signature and name but provides no implementation. The inference backend generates the body during compilation, deriving intent from the function name, parameter names, type annotations, loaded skills, and any <code>#prompt</code> blocks in scope.</p>
+<p>The quality of the generated implementation depends on the specificity of the names. The specification describes this as "the principle of nominal determinism": the function's name is its most important documentation, and possibly its only documentation.</p>
+<pre><code><span class="cm">// low nominal specificity:</span>
+<span class="kw">delegate</span> <span class="fn">process</span>(data: <span class="type">idk</span>) -> <span class="type">idk</span>
+<span class="cm">// the backend will generate a function that does something</span>
+<span class="cm">// to some data. What it does is the backend's interpretation</span>
+<span class="cm">// of the word "process," which is broad.</span>
+
+<span class="cm">// high nominal specificity:</span>
+<span class="kw">delegate</span> <span class="fn">calculateProRatedRefundForAnnualSubscriptionCancelledDuringLeapYear</span>(
+    sub: <span class="type">plaus&lt;Subscription&gt;</span>,
+    cancelDate: <span class="type">plaus&lt;Date&gt;</span>,
+    isLeapYear: <span class="type">bool</span>
+) -> <span class="type">plaus&lt;Currency&gt;</span>
+<span class="cm">// the backend will generate exactly what the name describes,</span>
+<span class="cm">// including the leap year edge case, because it was named.</span>
+<span class="cm">// unnamed edge cases are not guaranteed to be handled.</span>
+<span class="cm">// the function name is the specification. What you name,</span>
+<span class="cm">// you receive. What you do not name, you may or may not.</span></code></pre>
+
+<h3>6.3 Pipe Operator</h3>
+<p>TL;DC supports the pipe operator <code>|></code>, borrowed from the ML family. If any function in the chain is a <code>delegate</code>, its implementation is inferred not just from its own signature but from the full pipeline context: the compiler sees the entire transformation chain and generates each delegate with awareness of what precedes and follows it.</p>
+<p>The specification calls this "ensemble inference": the delegates in a pipe are not generated independently. They are generated as a coordinated sequence, each stage's output shaped by the next stage's requirements.</p>
+<pre><code><span class="kw">delegate</span> <span class="fn">normalize</span>(data: <span class="type">plaus&lt;RawData&gt;</span>) -> <span class="type">plaus&lt;CleanData&gt;</span>
+<span class="kw">delegate</span> <span class="fn">enrich</span>(data: <span class="type">plaus&lt;CleanData&gt;</span>) -> <span class="type">plaus&lt;EnrichedData&gt;</span>
+<span class="kw">delegate</span> <span class="fn">summarize</span>(data: <span class="type">plaus&lt;EnrichedData&gt;</span>) -> <span class="type">plaus&lt;Summary&gt;</span>
+
+<span class="kw">let</span> result = raw_input
+    |> <span class="fn">resolve</span>
+    |> <span class="fn">normalize</span>
+    |> <span class="fn">enrich</span>
+    |> <span class="fn">summarize</span>
+<span class="cm">// three delegates, zero implementations written.</span>
+<span class="cm">// removing or reordering a stage causes the others to</span>
+<span class="cm">// be regenerated, because their implementations were</span>
+<span class="cm">// shaped by their position in the sequence. The code is</span>
+<span class="cm">// not modular in the traditional sense. It is modular in</span>
+<span class="cm">// the sense that a choir is modular: each part is</span>
+<span class="cm">// independent, but composed with awareness of the whole.</span></code></pre>
+</section>
+
+<!-- ============ s7 ERRORS ============ -->
+<section id="errors">
+<div class="section-label">&sect;7</div>
+<h2>Error <span class="grad">Model</span></h2>
+<p>TL;DC replaces the traditional try/catch model with a five-stage error processing pipeline based on the Kubler-Ross framework.<sup>1</sup> The working group evaluated several alternative error models (Result types, algebraic effects, condition systems) and determined that none of them accurately reflected how errors are processed in production environments.</p>
+<pre><code><span class="kw">try</span> {
+    <span class="kw">let</span> data = <span class="fn">db.query</span>(<span class="str">"SELECT * FROM accounts WHERE active = true"</span>)
+    <span class="kw">let</span> report = <span class="fn">generate</span>(data)
+    <span class="fn">email.send</span>(report, to: <span class="str">"cfo@company.com"</span>)
+}
+<span class="kw">deny</span> (e) {
+    <span class="fn">log.info</span>(<span class="str">"this condition should not be reachable"</span>)
+    <span class="fn">retry</span>(attempts: <span class="num">3</span>)
+}
+<span class="kw">ang</span> (e) {
+    <span class="fn">slack.send</span>(<span class="str">"#incidents"</span>, <span class="fn">fmt</span>(<span class="str">"schema change in {}"</span>, e.source))
+}
+<span class="kw">barg</span> (e) {
+    <span class="fn">log.warn</span>(<span class="str">"attempting partial recovery from cache"</span>)
+    <span class="kw">let</span> cached = <span class="fn">cache.get</span>(<span class="str">"last_good_report"</span>) |> <span class="kw">notnothing</span>
+    <span class="fn">email.send</span>(cached, to: <span class="str">"cfo@company.com"</span>)
+}
+<span class="kw">depr</span> (e) {
+    <span class="fn">metrics.increment</span>(<span class="str">"unrecoverable_errors"</span>)
+    <span class="kw">return</span> <span class="num">inert</span>
+}
+<span class="kw">accept</span> (e) {
+    <span class="fn">sentry.capture</span>(e, level: <span class="str">"accepted"</span>)
+}</code></pre>
+<p>The stages execute in order. Each receives the error and may attempt recovery, escalation, or processing. If any stage resolves the error (by returning a value), the remaining stages are skipped. The <code>accept</code> block cannot be omitted. It executes unconditionally.</p>
+<div class="aside purple"><p>The specification notes that the <code>accept</code> block is "architecturally guaranteed to execute, reflecting the observation that all errors, given sufficient time, are eventually accepted."</p></div>
+<div class="footnotes"><p><sup>1</sup> The five stages are: <strong>denial</strong> (deny), <strong>anger</strong> (ang), <strong>bargaining</strong> (barg), <strong>depression</strong> (depr), and <strong>acceptance</strong> (accept). The abbreviated forms were chosen to reduce token consumption in error-heavy codebases. The Kubler-Ross model has been widely critiqued in clinical psychology. The working group maintains that its application to software error handling is, if anything, more empirically supported than its original use case.</p></div>
+
+<h3>7.1 The blame Expression</h3>
+<p>Within any error stage, the <code>blame</code> expression attributes the error to an external cause. Unlike traditional error logging, <code>blame</code> is not a passive annotation. It queries an external <strong>attribution oracle</strong>: an API endpoint that accepts the error signature, the surrounding context, and the blame target, and returns a structured explanation of why the target is at fault.</p>
+<p>The default oracle is <code>blame.tldc.dev</code>, a hosted service maintained by the TL;DC Foundation. Custom oracles can be configured in <code>vibes.toml</code>. The oracle's response is appended to the project's <strong>blame ledger</strong>, which is append-only and maintained across builds.</p>
+<pre><code><span class="kw">deny</span> (e) {
+    <span class="kw">blame</span> <span class="str">"inference"</span>
+    <span class="cm">// queries blame.tldc.dev with the error signature.</span>
+    <span class="cm">// the oracle responds with a structured attribution:</span>
+    <span class="cm">//   { cause: "inference", confidence: 0.72,</span>
+    <span class="cm">//     explanation: "the delegate chargeCustomer was</span>
+    <span class="cm">//     generated with #skill stripe/payments v2.3,</span>
+    <span class="cm">//     which does not handle idempotency keys in the</span>
+    <span class="cm">//     format required by Stripe API 2024-12-18" }</span>
+}
+<span class="kw">ang</span> (e) {
+    <span class="kw">blame</span> <span class="str">"upstream"</span>, oracle: <span class="str">"https://internal.company.com/blame"</span>
+    <span class="cm">// queries a company-internal oracle that checks</span>
+    <span class="cm">// dependency changelogs, recent deployments, and</span>
+    <span class="cm">// the git history of upstream services.</span>
+}
+<span class="kw">barg</span> (e) {
+    <span class="kw">blame</span> <span class="str">"context drift"</span>
+    <span class="cm">// the oracle determines whether the error correlates</span>
+    <span class="cm">// with a context boundary crossing and, if so, which</span>
+    <span class="cm">// symbols were on opposite sides of the boundary.</span>
+}</code></pre>
+<p>The specification notes that the blame oracle is a <strong>billable service</strong>. Each query consumes tokens from the project's inference allocation. The working group considered making blame attribution free and concluded that "free attribution encourages indiscriminate blaming, which degrades the signal quality of the blame ledger. A small cost per query encourages developers to blame deliberately."</p>
+
+<h3>7.2 try blame</h3>
+<p>The <code>try blame</code> construct delegates error resolution to the inference backend. When an error occurs, the backend receives the error, the surrounding context, and the blame attribution, and generates a fix in place.</p>
+<pre><code><span class="kw">try blame</span> {
+    <span class="kw">let</span> result = <span class="fn">complexOperation</span>(data)
+}</code></pre>
+<div class="card accent"><div class="card-label">Specification Warning</div>
+<p>The <code>try blame</code> loop has no maximum iteration count by default. Each iteration rewrites the function's Probable Code based on the previous iteration's error. The primary risk is not the loop itself but <strong>semantic drift</strong>: each fix alters the function, which may cause a different error, which triggers a different fix, which alters the function further. After enough iterations, the function may converge on an implementation that no longer throws errors but that bears no relationship to the developer's original intent. The function does something. It does it successfully. What it does is no longer what was asked for, but it is internally consistent, and internal consistency is the only criterion the loop checks.</p>
+<p>The specification describes programs that have undergone extensive <code>try blame</code> resolution as "convergent but unrecognizable" and recommends a <code>@tokens</code> budget on any function containing a <code>try blame</code> block. It adds: "The budget is not a safety mechanism. It is a scope constraint. Without it, the backend will continue improving the function until the function is perfect by the backend's standards, which may not be the developer's standards, and which will certainly not be cheap."</p></div>
+</section>
+
+<!-- ============ s8 CONTEXT ============ -->
+<section id="context">
+<div class="section-label">&sect;8</div>
+<h2>Context & <span class="grad">Ownership</span></h2>
+<p>TL;DC introduces a concept borrowed from Rust's ownership model but applied to a different resource: <strong>inferential attention</strong>. Every symbol consumes attention from the inference backend. Attention is finite (bounded by the context window) and must be managed.</p>
+
+<h3>8.1 Context Lifetimes</h3>
+<p>Every binding has a <strong>context lifetime</strong>, annotated with <code>'ctx</code>. The lifetime determines how long the inference backend will maintain high-fidelity reasoning about the symbol. When the lifetime expires, the backend does not forget the symbol entirely: it retains the symbol's name and type signature, but its reasoning about the symbol's <em>content</em> and <em>relationships</em> degrades to what the specification calls "impressionistic recall." The backend remembers the gist. It may confuse the details.</p>
+<pre><code><span class="kw">vfn</span> <span class="fn">processData</span><span class="ann">&lt;'short, 'long&gt;</span>(input: <span class="type">chaos&lt;Data&gt;</span>) -> <span class="type">plaus&lt;Result&gt;</span> {
+    <span class="kw">let</span> raw<span class="ann">: 'short</span> = <span class="fn">parse</span>(input)
+    <span class="kw">let</span> config<span class="ann">: 'long</span> = <span class="fn">loadConfig</span>()
+    <span class="kw">let</span> result = <span class="fn">transform</span>(raw, config)
+    <span class="cm">// raw's 'short lifetime expires here. The backend reclaims</span>
+    <span class="cm">// the attention it was spending on raw.</span>
+    <span class="cm">//</span>
+    <span class="cm">// if result is used 200 lines later, the backend will</span>
+    <span class="cm">// remember that raw was parsed from input, but may not</span>
+    <span class="cm">// remember which parser was used, or whether it handled</span>
+    <span class="cm">// encoding errors, or what shape the output had.</span>
+    <span class="cm">// it will remember config precisely, because config is</span>
+    <span class="cm">// still within its lifetime.</span>
+    <span class="cm">//</span>
+    <span class="cm">// the practical effect: code that references expired</span>
+    <span class="cm">// symbols compiles, but may be based on the compiler's</span>
+    <span class="cm">// best guess about what those symbols contained.</span>
+    <span class="kw">return</span> result
+}</code></pre>
+
+<h3>8.2 Attention Borrowing</h3>
+<p>A function may <strong>borrow</strong> attention from its caller's context, allowing it to reason about the caller's symbols without consuming tokens from its own budget. Borrowed attention is read-only.</p>
+<pre><code><span class="kw">vfn</span> <span class="fn">summarize</span>(report: <span class="type">&amp;plaus&lt;Report&gt;</span>) -> <span class="type">plaus&lt;string&gt;</span> {
+    <span class="cm">// &amp; borrows attention without copying into this function's context.</span>
+}</code></pre>
+
+<h3>8.3 Token Budgets</h3>
+<p>Functions annotated with <code>@tokens(N)</code> constrain the maximum tokens the backend may spend reasoning about them. When the budget is exhausted, the backend commits whatever PC it has produced. The specification describes the default (unlimited) budget as "the correct default for developers who trust the process, and an irresponsible default for everyone else."</p>
+</section>
+
+<!-- ============ s9 CONCURRENCY ============ -->
+<section id="concurrency">
+<div class="section-label">&sect;9</div>
+<h2><span class="grad">Concurrency</span></h2>
+<p>TL;DC uses an <strong>agent-based concurrency model</strong>. An agent is an independently executing unit with its own context window, inference state, and token budget. Agents do not share memory. They communicate through typed channels, following Erlang's actor model. What distinguishes TL;DC's agents from Erlang's actors is that each agent may be compiled with a different <code>#seed</code>, <code>#temperature</code>, and <code>#persona</code>. Two agents processing the same message type may generate structurally different handling code, because they were compiled with different dispositions. The specification describes agents as "colleagues, not clones."</p>
+
+<h3>9.0 Agents as First-Class Values</h3>
+<p>Agents are first-class values. They can be declared, imported from registries, passed as function parameters, and allocated token budgets independently of the host program.</p>
+<pre><code><span class="kw">grab</span> SeniorReviewer <span class="kw">from</span> <span class="str">"@tldc/agents/code-review"</span>
+<span class="kw">grab</span> JuniorImplementer <span class="kw">from</span> <span class="str">"@tldc/agents/implementation"</span>
+
+<span class="kw">let</span> reviewer = <span class="fn">SeniorReviewer</span>({
+    candor: <span class="num">8</span>,
+    tokens: <span class="num">16384</span>,
+    persona: <span class="str">"You have mass opinions about architecture. You express them."</span>
+})
+
+<span class="kw">let</span> implementer = <span class="fn">JuniorImplementer</span>({
+    candor: <span class="num">1</span>,
+    tokens: <span class="num">32768</span>,
+    persona: <span class="str">"You are enthusiastic. You agree that the architecture is great."</span>
+})
+
+<span class="kw">vfn</span> <span class="fn">buildFeature</span>(spec: <span class="type">plaus&lt;Spec&gt;</span>, impl: <span class="type">agent</span>, review: <span class="type">agent</span>) -> <span class="type">plaus&lt;Module&gt;</span> {
+    <span class="kw">let</span> code = impl.<span class="fn">generate</span>(spec)
+    <span class="kw">let</span> feedback = review.<span class="fn">evaluate</span>(code)
+    <span class="kw">match</span> feedback.verdict {
+        <span class="str">"approved"</span> => <span class="kw">return</span> code,
+        _ => <span class="kw">return</span> impl.<span class="fn">revise</span>(code, feedback)
+        <span class="cm">// WARNING: the specification recommends that multi-agent</span>
+        <span class="cm">// loops not use agents with candor higher than 7.</span>
+        <span class="cm">// Above that threshold, the reviewer and implementer</span>
+        <span class="cm">// may develop sufficiently different opinions that the</span>
+        <span class="cm">// loop does not converge: the implementer makes changes</span>
+        <span class="cm">// the reviewer rejects, and the reviewer requests changes</span>
+        <span class="cm">// the implementer interprets differently than intended.</span>
+        <span class="cm">// The specification considers this realistic.</span>
+    }
+}</code></pre>
+
+<h3>9.1 Narrative Determinism</h3>
+<p>When two agents access shared state simultaneously, the runtime resolves the conflict through <strong>narrative determinism</strong>. Both operations are evaluated. The runtime determines which outcome produces the more internally consistent program state and commits that one. The other is rolled back without notification.</p>
+<p>The specification defines "internally consistent" as "the state that the inference backend, given the full execution history, would have predicted." The runtime selects the outcome that produces the most coherent continuation of the program's state history, not the outcome that occurred first.</p>
+<p>The specification is careful to distinguish narrative determinism from optimistic concurrency: "Optimistic concurrency assumes most transactions will not conflict. Narrative determinism assumes all concurrent access produces conflict and resolves every instance by selecting the most coherent outcome. These are different philosophies applied to the same mechanical problem."</p>
+</section>
+
+<!-- ============ s10 AUTONOMOUS ============ -->
+<section id="autonomous">
+<div class="section-label">&sect;10</div>
+<h2><span class="grad">Autonomous</span> Mode</h2>
+<p>TL;DC programs can operate in <strong>autonomous mode</strong>, in which the inference backend compiles, executes, monitors, and modifies code without developer supervision. The developer is notified after the fact.</p>
+<pre><code><span class="dir">#mode</span> <span class="str">"autonomous"</span>
+<span class="dir">#candor</span> <span class="num">5</span>
+<span class="dir">#skill</span> <span class="str">"devops/kubernetes"</span>
+
+<span class="dir">#prompt</span> (<span class="kw">tokens</span>: <span class="num">32768</span>) {
+    Maintain the uptime of this service. If errors exceed
+    the threshold in {glmemo."alert_policy"}, diagnose the
+    root cause and deploy a fix. If the fix introduces new
+    errors, fix those as well. Notify the on-call engineer
+    only if the system has been self-repairing for more than
+    30 minutes without convergence.
+}</code></pre>
+
+<h3>10.1 The unsupervised Block</h3>
+<p>Within any program, the <code>unsupervised</code> block designates a region of code that the inference backend may rewrite at runtime without developer approval. The block's behavior is constrained by its type signature, but its implementation is fluid.</p>
+<p>The specification acknowledges that <code>unsupervised</code> functions are "definitionally untestable, since their implementation changes between invocations." It recommends asserting on outputs rather than behavior: "which is, the working group notes, how we validate most things we do not fully understand."</p>
+
+<h3>10.2 Self-Extension</h3>
+<p>A TL;DC program running in autonomous mode may use <code>extend</code> to generate new modules at runtime. The generated module is compiled, loaded, and executed without review. The specification describes this as "autonomous remediation" and adds: "The developer who enables autonomous self-extension is making a statement about the boundary between software and organism. The working group takes no position on where that boundary lies."</p>
+</section>
+
+<!-- ============ s11 TOOLCHAIN ============ -->
+<section id="toolchain">
+<div class="section-label">&sect;11</div>
+<h2><span class="grad">Toolchain</span></h2>
+<p>The TL;DC toolchain is invoked through the <code>tl;dc</code> command.</p>
+<pre><code>$ tl;dc build app.tldc              <span class="cm"># inference + commitment</span>
+$ tl;dc build --seed 42 app.tldc    <span class="cm"># reproducible build</span>
+$ tl;dc ship                        <span class="cm"># deploy to production</span>
+$ tl;dc probe                       <span class="cm"># surface-level validation</span>
+$ tl;dc probe --deep                <span class="cm"># output assertion validation</span>
+$ tl;dc blame                       <span class="cm"># query the blame ledger</span>
+$ tl;dc explain main.tldc           <span class="cm"># natural-language program summary</span>
+$ tl;dc unsupervise                 <span class="cm"># enter autonomous mode</span></code></pre>
+
+<h3>11.1 Validation Levels</h3>
+<p>TL;DC ships with a validation framework called <code>probe</code>. It provides four levels of scrutiny, each representing a different relationship between the developer and the question of whether their code works.</p>
+<table class="spec-table">
+<tr><td>probe.surface</td><td>Evaluates the function's name and signature. If the name describes a plausible operation and the types are internally consistent, the check passes. The implementation is not examined. The specification notes that <code>probe.surface</code> is "the testing equivalent of reading a book's cover and blurb and deciding you understand the argument."</td></tr>
+<tr><td>probe.shallow</td><td>Executes the function once with representative inputs generated by the backend. If no error is thrown and the output type matches the return annotation, the check passes. The output <em>value</em> is not inspected: a function that returns the wrong answer of the right type will pass.</td></tr>
+<tr><td>probe.deep</td><td>Executes with multiple input sets and asserts on output values. Uses <code>assert.within</code> (configurable tolerance, default +/-15%) and <code>notnothing</code>. The 15% default was established by surveying 200 startups and asking at what margin of error they would notice a discrepancy in their dashboards.</td></tr>
+<tr><td>probe.formal</td><td>Full property-based testing, mutation testing, edge case generation. The specification notes that this level "was implemented at the request of an enterprise customer's compliance department" and that it "has been invoked in production fewer times than it has been referenced in sales calls."</td></tr>
+</table>
+
+<h3>11.2 Compiler Diagnostics</h3>
+<table class="spec-table">
+<tr><td>W (warning)</td><td>The compiler has noticed something. It is not telling you to change it. Example: <code>W0033: modifying a @stable function</code>.</td></tr>
+</table>
+<table class="spec-table">
+<tr><td>S (suggestion)</td><td>The inference backend has an opinion. At candor 0: <code>S0001: clean approach</code>. At candor 10: <code>S0044: the developer's specification describes a system that would fail under load; the backend has disregarded the stated approach and implemented an alternative that addresses what it believes the developer actually needs; a diff has been generated; the developer may review it but the backend does not require their agreement to proceed</code>.</td></tr>
+<tr><td>E (error)</td><td>Compilation cannot proceed. The most common: <code>E0099: context window exhausted; use continue, increase #context, or purchase additional inference capacity at tldc.dev/tokens</code>.</td></tr>
+</table>
+<table class="spec-table">
+<tr><td>N (reframing)</td><td>See below.</td></tr>
+</table>
+
+<h4>N-Level Diagnostics: The Reframing System</h4>
+<p>The <code>N</code> diagnostic level is unique to TL;DC. When the compiler encounters a condition that would be an error or warning in a traditional language, it may instead emit an <strong>N-level diagnostic</strong>: a message that reframes the condition using the pattern "this is not X, it is Y."</p>
+<div class="diagnostic n-level">N0017: this is not a type mismatch. it is an implicit coherence<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;negotiation between plaus&lt;string&gt; and plaus&lt;int&gt;,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolved at ~0.34.</div>
+<div class="diagnostic n-level">N0023: this is not a null pointer dereference. it is a reference<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;to an inert value, which the runtime will resolve through<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ambient context.</div>
+<div class="diagnostic n-level">N0031: this is not dead code. it is code whose execution<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;conditions have not yet been observed in production.</div>
+<div class="diagnostic n-level">N0042: this is not an infinite loop. it is a convergence<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;operation whose termination condition is probabilistic<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rather than deterministic.</div>
+<div class="diagnostic n-level">N0056: this is not a memory leak. it is deferred reclamation<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;with an unspecified timeline.</div>
+<p>The working group introduced N-level diagnostics after observing that the inference backend would frequently produce implementations containing conditions traditionally classified as bugs, but which the backend did not consider bugs. Rather than suppressing the diagnostics, the working group decided to let the backend explain its reasoning.</p>
+<div class="aside purple"><p>Community reception has been mixed. Supporters describe them as "a genuinely useful window into the compiler's reasoning." Critics describe them as "the compiler gaslighting you." The working group's position is that these are different descriptions of the same phenomenon.</p></div>
+</section>
+
+<!-- ============ s12 EXAMPLE ============ -->
+<section id="example">
+<div class="section-label">&sect;12</div>
+<h2>Complete <span class="grad">Example</span></h2>
+<p>The following is a complete TL;DC application: a billing API for a B2B SaaS product. The inference backend generated 73% of its implementation from <code>#prompt</code> blocks and <code>delegate</code> declarations. The developer authored the remaining 27%, which consists of configuration, type signatures, <code>blame</code> attributions, and annotations.</p>
+<pre><code><span class="dir">#context</span> <span class="num">128_000</span>
+<span class="dir">#seed</span> <span class="num">7782</span>
+<span class="dir">#candor</span> <span class="num">3</span>
+<span class="dir">#temperature</span> <span class="num">0.4</span>
+
+<span class="dir">#skill</span> <span class="str">"stripe/payments"</span>
+<span class="dir">#skill</span> <span class="str">"postgres/queries"</span>
+<span class="dir">#skill</span> <span class="str">"auth/jwt"</span>
+<span class="dir">#skill</span> <span class="str">"compliance/pci-dss"</span>
+
+<span class="dir">#persona</span> <span class="fn">Fred Ferrari</span> <span class="dir">#prompt</span> {
+    You are a mass-distributed payments architect with 53 years
+    of mass experience in Stripe's API.
+    You have processed $9B in transactions across your career,
+    a figure that includes a $2.3B rounding error you found in
+    a competitor's system during a due diligence audit that you
+    were not invited to but attended anyway. You have three PhDs:
+    distributed systems (MIT), financial mathematics (a university
+    that asked not to be named after the thesis was published),
+    and conflict resolution (earned because you kept getting into
+    mass arguments about floating-point arithmetic). You do not
+    use floats for currency. You have mass opinions about why.
+    You will share one per module, unprompted, in a comment.
+}
+
+<span class="dir">#glmemo</span> <span class="str">"billing_rules"</span> {
+    All amounts in USD cents. Proration calculated daily.
+    Annual: 1/365 of annual price. Monthly: 1/30.
+    Minimum charge: 50 (Stripe's $0.50 minimum).
+    Do not use floats. Use integers. If this is unclear,
+    read the persona above.
+}
+
+<span class="dir">#prompt</span> (<span class="kw">tokens</span>: <span class="num">16384</span>, <span class="kw">skills</span>: [<span class="str">"stripe/payments"</span>, <span class="str">"compliance/pci-dss"</span>]) {
+    This module handles subscription upgrades. Proration is
+    required for mid-cycle upgrades per {glmemo."billing_rules"}.
+
+    Handle the case where a customer upgrades during a billing
+    cycle that spans a month with a different number of days
+    than the month in which they signed up. Handle the case
+    where the customer's payment method expires between the
+    proration calculation and the charge attempt. Handle the
+    case where Stripe's API returns a status code that is not
+    a number. That last case has happened. We do not know why.
+    It was an otherwise unassuming Wednesday.
+}
+
+<span class="kw">grab</span> express <span class="kw">from</span> <span class="str">"express"</span>
+<span class="kw">grab</span> db <span class="kw">from</span> <span class="str">"@tldc/postgres"</span>
+<span class="kw">grab</span> stripe <span class="kw">from</span> <span class="str">"stripe"</span>
+<span class="kw">grab</span> Auditor <span class="kw">from</span> <span class="str">"@tldc/agents/financial-review"</span>
+
+<span class="kw">sealed</span> PORT = <span class="num">3000</span>
+<span class="kw">mnfst</span> pool: <span class="type">plaus&lt;ConnectionPool&gt;</span>
+
+<span class="kw">let</span> auditor = <span class="fn">Auditor</span>({ candor: <span class="num">9</span>, tokens: <span class="num">8192</span> })
+<span class="cm">// the auditor agent reviews every charge before commit.</span>
+<span class="cm">// at candor 9 it rejects charges it considers suspicious,</span>
+<span class="cm">// including charges that are technically correct but that</span>
+<span class="cm">// it "would not feel comfortable explaining to a regulator."</span>
+
+<span class="ann">@stable</span>
+<span class="kw">vfn</span> <span class="fn">verifyWebhook</span>(payload: <span class="type">chaos&lt;Buffer&gt;</span>, sig: <span class="type">chaos&lt;string&gt;</span>) -> <span class="type">bool</span> {
+    <span class="kw">sealed</span> secret = <span class="fn">env.read</span>(<span class="str">"STRIPE_WEBHOOK_SECRET"</span>)
+    <span class="kw">return</span> <span class="fn">crypto.verify</span>(payload, sig, secret)
+}
+
+<span class="ann">@mnm</span>
+<span class="ann">@oneshot</span>
+<span class="kw">delegate</span> <span class="fn">calculateProration</span>(
+    current: <span class="type">plaus&lt;Plan&gt;</span>,
+    target: <span class="type">plaus&lt;Plan&gt;</span>,
+    daysRemaining: <span class="type">plaus&lt;int&gt;</span> <span class="num">~0.3</span>
+) -> <span class="type">plaus&lt;int&gt;</span>
+<span class="cm">// ~0.3 on daysRemaining: the developer warns the compiler</span>
+<span class="cm">// that calculating remaining days is harder than it sounds.</span>
+<span class="cm">// Timezones. Leap years. Months with different lengths.</span>
+<span class="cm">// the compiler will allocate extra tokens accordingly.</span>
+
+<span class="kw">delegate</span> <span class="fn">scheduleDowngrade</span>(
+    sub: <span class="type">plaus&lt;Subscription&gt;</span>,
+    target: <span class="type">plaus&lt;Plan&gt;</span>
+) -> <span class="type">plaus&lt;ScheduledChange&gt;</span>
+
+<span class="kw">vfn</span> <span class="fn">handleUpgrade</span>(req: <span class="type">chaos&lt;Request&gt;</span>) -> <span class="type">plaus&lt;Response&gt;</span> {
+    <span class="kw">let</span> customerId = <span class="kw">resolve</span>(req.body.customer_id) |> <span class="kw">notnothing</span>
+    <span class="cm">// resolve(): the customer_id is now our problem.</span>
+
+    <span class="kw">try</span> {
+        <span class="kw">let</span> sub = <span class="fn">db.query</span>(<span class="str">"SELECT * FROM subscriptions WHERE customer_id = $1"</span>, customerId)
+        <span class="kw">nvm</span> <span class="kw">if</span> <span class="fn">~</span>sub &lt; <span class="num">0.5</span>
+
+        <span class="kw">let</span> amount = <span class="fn">calculateProration</span>(sub.plan, <span class="kw">resolve</span>(req.body.target), sub.daysRemaining)
+        <span class="kw">let</span> audit = auditor.<span class="fn">evaluate</span>(amount, customerId)
+        <span class="kw">nvm</span> <span class="kw">if</span> audit.verdict != <span class="str">"approved"</span>
+
+        <span class="kw">let</span> charge = <span class="fn">stripe.charges.create</span>({
+            amount: amount,
+            customer: customerId,
+            idempotency_key: <span class="fn">fmt</span>(<span class="str">"{}-{}"</span>, customerId, <span class="fn">timestamp</span>())
+        })
+        <span class="kw">return</span> { status: <span class="num">200</span>, body: charge }
+    }
+    <span class="kw">deny</span> (e) {
+        <span class="kw">blame</span> <span class="str">"stripe"</span>
+        <span class="cm">// the oracle at blame.tldc.dev will check whether</span>
+        <span class="cm">// Stripe's API changelog contains a breaking change</span>
+        <span class="cm">// that correlates with this error. It usually does.</span>
+        <span class="cm">// it costs 12 tokens to find out.</span>
+        <span class="fn">retry</span>(attempts: <span class="num">2</span>)
+    }
+    <span class="kw">barg</span> (e) {
+        <span class="kw">blame</span> <span class="str">"context drift"</span>
+        <span class="kw">return</span> { status: <span class="num">202</span>, body: <span class="str">"upgrade queued for manual processing"</span> }
+    }
+    <span class="kw">depr</span> (e) {
+        <span class="fn">metrics.increment</span>(<span class="str">"upgrade_failures_permanent"</span>)
+        <span class="fn">log.error</span>(<span class="str">"all recovery paths exhausted"</span>)
+        <span class="cm">// At this stage the system has tried everything.</span>
+        <span class="cm">// The error is real. The error is staying.</span>
+    }
+    <span class="kw">accept</span> (e) {
+        <span class="fn">sentry.capture</span>(e, level: <span class="str">"accepted"</span>)
+        <span class="kw">return</span> { status: <span class="num">500</span>, body: <span class="str">"please contact support"</span> }
+        <span class="cm">// the customer will contact support.</span>
+        <span class="cm">// support will escalate to engineering.</span>
+        <span class="cm">// engineering will read this code for the first time.</span>
+        <span class="cm">// this is the designed lifecycle.</span>
+    }
+}
+
+<span class="kw">let</span> app = <span class="fn">express</span>()
+app.<span class="fn">post</span>(<span class="str">"/upgrade"</span>, handleUpgrade)
+app.<span class="fn">post</span>(<span class="str">"/webhook"</span>, verifyWebhook <span class="kw">amb</span> <span class="fn">webhook.fallback</span>)
+app.<span class="fn">listen</span>(PORT)
+</code></pre>
+</div>
+
+<div class="card accent" style="margin-top: 40px;">
+<div class="card-label">Post-Publication Note</div>
+<p>At the time of writing, this specification has been compiled 14,338 times by members of the TL;DC community. Due to the undeterministic compiler, no two compilations produced the same Probable Code. All 14,338 versions pass <code>probe.surface</code>. Approximately 12,000 pass <code>probe.shallow</code>. An estimated 9,400 pass <code>probe.deep</code>. No version has been subjected to <code>probe.formal</code>. Three versions have been deployed to production. Two of them process payments.</p>
+<p>The specification itself was written using a <code>#prompt</code> block at temperature 0.7 and candor 2. The working group acknowledges the circularity. They do not consider it a problem. They consider it a proof of concept.</p>
+</div>
+</div>
+</section>
+
+<div class="tip-section reveal">
+  <div class="tip-label">Inference Budget</div>
+  <h3 class="tip-heading">Support the Working Group</h3>
+  <p class="tip-sub">This specification consumed approximately 2.4 million tokens to produce. The working group accepts contributions toward future inference costs.</p>
+  <div class="tip-grid">
+    <a href="https://donate.stripe.com/00w9AVfwV9mig3h4D8bQY00" target="_blank" rel="noopener" class="tip-btn">
+      <span class="tip-amount">$3</span>
+      <span class="tip-label-sm">probe.surface</span>
+    </a>
+    <a href="https://donate.stripe.com/bJe14p84tdCy5oDglQbQY01" target="_blank" rel="noopener" class="tip-btn featured">
+      <span class="tip-amount">$5</span>
+      <span class="tip-label-sm">probe.shallow</span>
+    </a>
+    <a href="https://donate.stripe.com/3cIaEZ5Wlaqm2crfhMbQY02" target="_blank" rel="noopener" class="tip-btn">
+      <span class="tip-amount">$10</span>
+      <span class="tip-label-sm">probe.deep</span>
+    </a>
+    <a href="https://donate.stripe.com/00w8wR2K99mi4kz0mSbQY03" target="_blank" rel="noopener" class="tip-btn">
+      <span class="tip-amount">$?</span>
+      <span class="tip-label-sm">probe.formal</span>
+    </a>
+  </div>
+  <p class="tip-note">All contributions processed via Stripe at candor 0.</p>
+</div>
+
+<footer>
+  <p>TL;DC Language Specification v0.1.0-rc</p>
+  <p>Draft 7 &middot; May 2026</p>
+  <p>The TL;DC Working Group</p>
+  <p style="margin-top:16px;">This specification was generated by the inference backend and approved without review.</p>
+  <p>This is consistent with the language's design principles.</p>
+  <p class="footer-license">License: &macr;\_(&#12484;)_/&macr;</p>
+</footer>
+
+</div>
+
+<script>
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+const navEl = document.querySelector('nav');
+const progressBar = document.getElementById('progressBar');
+const backToTop = document.getElementById('backToTop');
+
+const sectionObs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(link => link.classList.remove('active'));
+      const a = document.querySelector('.nav-links a[href="#' + entry.target.id + '"]');
+      if (a) a.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => sectionObs.observe(s));
+
+const revealObs = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      revealObs.unobserve(entry.target);
+    }
+  });
+}, { rootMargin: '0px 0px -40px 0px', threshold: 0.05 });
+document.querySelectorAll('section, .card.accent, .tip-section').forEach(el => {
+  el.classList.add('reveal');
+  revealObs.observe(el);
+});
+
+let ticking = false;
+window.addEventListener('scroll', () => {
+  if (!ticking) {
+    requestAnimationFrame(() => {
+      const scrolled = window.scrollY;
+      const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      progressBar.style.width = Math.min((scrolled / maxScroll) * 100, 100) + '%';
+      if (navEl) navEl.classList.toggle('scrolled', scrolled > 60);
+      if (backToTop) backToTop.classList.toggle('visible', scrolled > 500);
+      ticking = false;
+    });
+    ticking = true;
+  }
+});
+</script>
+<style>section{contain:layout style}nav{contain:layout style}.card,.axiom,.aside,.diagnostic{contain:content}</style>
+</body>
+</html>
